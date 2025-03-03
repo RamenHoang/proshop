@@ -87,7 +87,7 @@ const OrderScreen = () => {
       .create({
         purchase_units: [
           {
-            amount: { value: order.totalPrice / 25000 },
+            amount: { value: (order.totalPrice / 25000).toFixed(2) },
           },
         ],
       })
