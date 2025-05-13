@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useLogoutMutation } from '../slices/usersApiSlice';
 import { logout } from '../slices/authSlice';
 import SearchBox from './SearchBox';
+import CategoryBar from './CategoryBar';
 import logo from '../assets/logo.png';
 import { resetCart } from '../slices/cartSlice';
 
@@ -40,6 +41,9 @@ const Header = () => {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
           <Navbar.Collapse id='basic-navbar-nav'>
+            {/* <Nav className='me-auto'>
+              <CategoryMenu />
+            </Nav> */}
             <Nav className='ms-auto'>
               <SearchBox />
               <Nav.Link as={Link} to='/cart'>
@@ -88,6 +92,7 @@ const Header = () => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
+      <CategoryBar />
     </header>
   );
 };

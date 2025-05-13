@@ -47,6 +47,27 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         method: 'PUT',
       }),
     }),
+    updateDeliveryStatus: builder.mutation({
+      query: ({ orderId, status, comment }) => ({
+        url: `${ORDERS_URL}/${orderId}/delivery-status`,
+        method: 'PUT',
+        body: { deliveryStatus: status, comment },
+      }),
+    }),
+    // VNPay payment
+    createVnpayPayment: builder.mutation({
+      query: (orderId) => ({
+        url: `${ORDERS_URL}/${orderId}/vnpay`,
+        method: 'POST',
+      }),
+    }),
+    // COD payment
+    markAsCod: builder.mutation({
+      query: (orderId) => ({
+        url: `${ORDERS_URL}/${orderId}/cod`,
+        method: 'PUT',
+      }),
+    }),
   }),
 });
 
@@ -58,4 +79,7 @@ export const {
   useGetMyOrdersQuery,
   useGetOrdersQuery,
   useDeliverOrderMutation,
+  useUpdateDeliveryStatusMutation,
+  useCreateVnpayPaymentMutation,
+  useMarkAsCodMutation,
 } = orderApiSlice;

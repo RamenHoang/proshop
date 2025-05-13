@@ -1,0 +1,31 @@
+/* Category Dropdown Styles */
+.categories-dropdown .dropdown-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.categories-dropdown .dropdown-item {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+/* Category Bar Styles */
+.category-bar {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.category-nav {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.category-item {
+  padding: 0.25rem 1rem;
+  font-size: 0.9rem;
+}
+
+.category-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}

@@ -17,8 +17,14 @@ const getProducts = asyncHandler(async (req, res) => {
       }
     : {};
 
-  const count = await Product.countDocuments({ ...keyword });
-  const products = await Product.find({ ...keyword })
+  const category = req.query.category
+    ? {
+        category: req.query.category,
+      }
+    : {};
+
+  const count = await Product.countDocuments({ ...keyword, ...category });
+  const products = await Product.find({ ...keyword, ...category })
     .limit(pageSize)
     .skip(pageSize * (page - 1));
 
@@ -154,6 +160,14 @@ const getTopProducts = asyncHandler(async (req, res) => {
   res.json(products);
 });
 
+// @desc    Get all product categories
+// @route   GET /api/products/categories
+// @access  Public
+const getProductCategories = asyncHandler(async (req, res) => {
+  const categories = await Product.distinct('category');
+  res.json(categories);
+});
+
 export {
   getProducts,
   getProductById,
@@ -162,4 +176,5 @@ export {
   deleteProduct,
   createProductReview,
   getTopProducts,
+  getProductCategories,
 };

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { Row, Col, ListGroup, Image, Card, Button } from 'react-bootstrap';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import { useSelector } from 'react-redux';
@@ -11,10 +11,16 @@ import {
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
+  useCreateVnpayPaymentMutation,
+  useMarkAsCodMutation,
 } from '../slices/ordersApiSlice';
 
 const OrderScreen = () => {
   const { id: orderId } = useParams();
+  const location = useLocation();
+
+  // Add a ref to track if toast has been shown
+  const toastShown = useRef(false);
 
   const {
     data: order,
@@ -28,6 +34,9 @@ const OrderScreen = () => {
   const [deliverOrder, { isLoading: loadingDeliver }] =
     useDeliverOrderMutation();
 
+  const [createVnpayPayment, { isLoading: loadingVnpay }] = useCreateVnpayPaymentMutation();
+  const [markAsCod, { isLoading: loadingCod }] = useMarkAsCodMutation();
+
   const { userInfo } = useSelector((state) => state.auth);
 
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
@@ -37,6 +46,30 @@ const OrderScreen = () => {
     isLoading: loadingPayPal,
     error: errorPayPal,
   } = useGetPaypalClientIdQuery();
+
+  // Extract success and message from URL query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const success = searchParams.get('success');
+  const message = searchParams.get('message');
+
+  useEffect(() => {
+    // Only show toast if it hasn't been shown yet for this URL
+    if (!toastShown.current && success && message) {
+      if (success === 'true') {
+        toast.success(message);
+      } else if (success === 'false') {
+        toast.error(message);
+      }
+      // Mark toast as shown
+      toastShown.current = true;
+
+      // Clear the URL parameters to prevent showing toast on refresh
+      if (window.history.replaceState) {
+        const url = window.location.href.split('?')[0];
+        window.history.replaceState({}, document.title, url);
+      }
+    }
+  }, [success, message]);
 
   useEffect(() => {
     if (!errorPayPal && !loadingPayPal && paypal.clientId) {
@@ -70,14 +103,6 @@ const OrderScreen = () => {
     });
   }
 
-  // TESTING ONLY! REMOVE BEFORE PRODUCTION
-  // async function onApproveTest() {
-  //   await payOrder({ orderId, details: { payer: {} } });
-  //   refetch();
-
-  //   toast.success('Order is paid');
-  // }
-
   function onError(err) {
     toast.error(err.message);
   }
@@ -99,6 +124,25 @@ const OrderScreen = () => {
   const deliverHandler = async () => {
     await deliverOrder(orderId);
     refetch();
+  };
+
+  const handleCodPayment = async () => {
+    try {
+      await markAsCod(orderId).unwrap();
+      refetch();
+      toast.success('Order confirmed as Cash on Delivery');
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
+
+  const handleVnpayPayment = async () => {
+    try {
+      const res = await createVnpayPayment(orderId).unwrap();
+      window.location.href = res.paymentUrl;
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
   };
 
   return isLoading ? (
@@ -179,6 +223,21 @@ const OrderScreen = () => {
                 </ListGroup>
               )}
             </ListGroup.Item>
+
+            <ListGroup.Item>
+              <h2>Delivery Status</h2>
+              <p>
+                <strong>Status: </strong>
+                {order.deliveryStatus}
+              </p>
+              {order.isDelivered ? (
+                <Message variant='success'>
+                  Delivered on {order.deliveredAt}
+                </Message>
+              ) : (
+                <Message variant='danger'>Not Delivered</Message>
+              )}
+            </ListGroup.Item>
           </ListGroup>
         </Col>
         <Col md={4}>
@@ -215,26 +274,44 @@ const OrderScreen = () => {
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
 
-                  {isPending ? (
-                    <Loader />
-                  ) : (
-                    <div>
-                      {/* THIS BUTTON IS FOR TESTING! REMOVE BEFORE PRODUCTION! */}
-                      {/* <Button
-                        style={{ marginBottom: '10px' }}
-                        onClick={onApproveTest}
-                      >
-                        Test Pay Order
-                      </Button> */}
+                  {order.paymentMethod === 'PayPal' && (
+                    <>
+                      {isPending ? (
+                        <Loader />
+                      ) : (
+                        <div>
+                          <div>
+                            <PayPalButtons
+                              createOrder={createOrder}
+                              onApprove={onApprove}
+                              onError={onError}
+                            ></PayPalButtons>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
 
-                      <div>
-                        <PayPalButtons
-                          createOrder={createOrder}
-                          onApprove={onApprove}
-                          onError={onError}
-                        ></PayPalButtons>
-                      </div>
-                    </div>
+                  {order.paymentMethod === 'VNPay' && (
+                    <Button
+                      type='button'
+                      className='btn btn-block'
+                      onClick={handleVnpayPayment}
+                      disabled={loadingVnpay}
+                    >
+                      {loadingVnpay ? <Loader /> : 'Pay with VNPay'}
+                    </Button>
+                  )}
+
+                  {order.paymentMethod === 'COD' && (
+                    <Button
+                      type='button'
+                      className='btn btn-block'
+                      onClick={handleCodPayment}
+                      disabled={loadingCod}
+                    >
+                      {loadingCod ? <Loader /> : 'Confirm Cash on Delivery Order'}
+                    </Button>
                   )}
                 </ListGroup.Item>
               )}

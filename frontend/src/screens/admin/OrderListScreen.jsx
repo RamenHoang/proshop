@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { Table, Button, Form, Row, Col } from 'react-bootstrap';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaEdit } from 'react-icons/fa';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
-import { useGetOrdersQuery } from '../../slices/ordersApiSlice';
+import { useGetOrdersQuery, useUpdateDeliveryStatusMutation } from '../../slices/ordersApiSlice';
 import { Link } from 'react-router-dom';
+// import { LinkContainer } from 'react-router-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { toast } from 'react-toastify';
 
 const OrderListScreen = () => {
-  const { data: orders, isLoading, error } = useGetOrdersQuery();
+  const { data: orders, isLoading, error, refetch } = useGetOrdersQuery();
+  const [updateDeliveryStatus] = useUpdateDeliveryStatusMutation();
 
   const [paidFilter, setPaidFilter] = useState('all');
   const [deliveredFilter, setDeliveredFilter] = useState('all');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
 
   // Clear date filters
   const clearDateFilter = () => {
@@ -31,6 +35,9 @@ const OrderListScreen = () => {
     // Filter by delivery status
     if (deliveredFilter === 'delivered' && !order.isDelivered) return false;
     if (deliveredFilter === 'notDelivered' && order.isDelivered) return false;
+
+    // Filter by payment method
+    if (paymentMethodFilter !== 'all' && order.paymentMethod !== paymentMethodFilter) return false;
 
     // Filter by date range
     if (startDate || endDate) {
@@ -53,6 +60,20 @@ const OrderListScreen = () => {
 
     return true;
   }) : [];
+
+  // Function to handle status update
+  const handleStatusUpdate = async (orderId, status) => {
+    try {
+      await updateDeliveryStatus({
+        orderId,
+        status,
+      }).unwrap();
+      refetch();
+      toast.success('Status updated');
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
 
   return (
     <>
@@ -83,6 +104,21 @@ const OrderListScreen = () => {
               <option value="all">All</option>
               <option value="delivered">Delivered</option>
               <option value="notDelivered">Not Delivered</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
+
+        <Col md={6} lg={3} xl={2}>
+          <Form.Group controlId="paymentMethodFilter">
+            <Form.Label>Payment Method</Form.Label>
+            <Form.Select
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
+            >
+              <option value="all">All Methods</option>
+              <option value="PayPal">PayPal</option>
+              <option value="VNPay">VNPay</option>
+              <option value="COD">Cash On Delivery</option>
             </Form.Select>
           </Form.Group>
         </Col>
@@ -152,6 +188,7 @@ const OrderListScreen = () => {
               <th>DATE</th>
               <th>TOTAL</th>
               <th>PAID</th>
+              <th>DELIVERY STATUS</th>
               <th>DELIVERED</th>
               <th></th>
             </tr>
@@ -169,6 +206,19 @@ const OrderListScreen = () => {
                   ) : (
                     <FaTimes style={{ color: 'red' }} />
                   )}
+                </td>
+                <td>
+                  <Form.Select
+                    value={order.deliveryStatus}
+                    onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                    className="form-select-sm"
+                  >
+                    <option value="Not Processed">Not Processed</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </Form.Select>
                 </td>
                 <td>
                   {order.isDelivered ? (

@@ -42,7 +42,31 @@ const PaymentScreen = () => {
               id='PayPal'
               name='paymentMethod'
               value='PayPal'
-              checked
+              checked={paymentMethod === 'PayPal'}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            ></Form.Check>
+            
+            {/* VNPay option */}
+            <Form.Check
+              type='radio'
+              className='my-2'
+              label='VNPay (Vietnam Payment)'
+              id='VNPay'
+              name='paymentMethod'
+              value='VNPay'
+              checked={paymentMethod === 'VNPay'}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            ></Form.Check>
+            
+            {/* COD option */}
+            <Form.Check
+              type='radio'
+              className='my-2'
+              label='Cash On Delivery (COD)'
+              id='COD'
+              name='paymentMethod'
+              value='COD'
+              checked={paymentMethod === 'COD'}
               onChange={(e) => setPaymentMethod(e.target.value)}
             ></Form.Check>
           </Col>

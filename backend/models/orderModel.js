@@ -35,6 +35,10 @@ const orderSchema = mongoose.Schema(
       status: { type: String },
       update_time: { type: String },
       email_address: { type: String },
+      vnp_TransactionNo: { type: String },
+      vnp_ResponseCode: { type: String },
+      vnp_OrderInfo: { type: String },
+      vnp_PayDate: { type: String },
     },
     itemsPrice: {
       type: Number,
@@ -72,6 +76,33 @@ const orderSchema = mongoose.Schema(
     deliveredAt: {
       type: Date,
     },
+    deliveryStatus: {
+      type: String,
+      required: true,
+      enum: ['Not Processed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      default: 'Not Processed',
+    },
+    statusHistory: [
+      {
+        status: {
+          type: String,
+          enum: ['Not Processed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+          required: true,
+        },
+        date: {
+          type: Date,
+          required: true,
+          default: Date.now,
+        },
+        comment: {
+          type: String,
+        },
+        updatedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      },
+    ],
   },
   {
     timestamps: true,
