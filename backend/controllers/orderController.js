@@ -279,16 +279,16 @@ const handleCodOrder = asyncHandler(async (req, res) => {
   order.paymentMethod = 'COD';
   
   // COD orders are not paid until delivery
-  order.isPaid = false;
-  order.deliveryStatus = 'Processing';
+  order.isPaid = true;
+  // order.deliveryStatus = 'Processing';
   
   // Add to status history
-  order.statusHistory.push({
-    status: 'Processing',
-    date: Date.now(),
-    comment: 'Order placed with Cash on Delivery',
-    updatedBy: req.user._id,
-  });
+  // order.statusHistory.push({
+  //   status: 'Processing',
+  //   date: Date.now(),
+  //   comment: 'Order placed with Cash on Delivery',
+  //   updatedBy: req.user._id,
+  // });
   
   const updatedOrder = await order.save();
   res.json(updatedOrder);

@@ -35,7 +35,7 @@ const PaymentScreen = () => {
         <Form.Group>
           <Form.Label as='legend'>Select Method</Form.Label>
           <Col>
-            <Form.Check
+            {/* <Form.Check
               className='my-2'
               type='radio'
               label='PayPal or Credit Card'
@@ -44,7 +44,7 @@ const PaymentScreen = () => {
               value='PayPal'
               checked={paymentMethod === 'PayPal'}
               onChange={(e) => setPaymentMethod(e.target.value)}
-            ></Form.Check>
+            ></Form.Check> */}
             
             {/* VNPay option */}
             <Form.Check

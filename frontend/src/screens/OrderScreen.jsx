@@ -303,7 +303,7 @@ const OrderScreen = () => {
                     </Button>
                   )}
 
-                  {order.paymentMethod === 'COD' && (
+                  {order.paymentMethod === 'COD' && userInfo && userInfo.isAdmin && (
                     <Button
                       type='button'
                       className='btn btn-block'
