@@ -1,6 +1,6 @@
 import { Nav, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useGetCategoriesQuery } from '../slices/productsApiSlice';
+import { useGetCategoriesQuery } from '../slices/categoriesApiSlice';
 import Loader from './Loader';
 import Message from './Message';
 
@@ -15,13 +15,13 @@ const CategoryBar = () => {
       <Container className="d-flex justify-content-center">
         <Nav className="overflow-auto category-nav">
           {categories.map((category) => (
-            <Nav.Item key={category}>
+            <Nav.Item key={category._id}>
               <Nav.Link 
                 as={Link} 
-                to={`/category/${encodeURIComponent(category)}`}
+                to={`/category/${encodeURIComponent(category.name)}`}
                 className="category-item text-dark"
               >
-                {category}
+                {category.name}
               </Nav.Link>
             </Nav.Item>
           ))}

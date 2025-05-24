@@ -1,6 +1,6 @@
 import { NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useGetCategoriesQuery } from '../slices/productsApiSlice';
+import { useGetCategoriesQuery } from '../slices/categoriesApiSlice';
 import Loader from './Loader';
 import Message from './Message';
 
@@ -14,11 +14,11 @@ const CategoryMenu = () => {
     <NavDropdown title='Categories' id='categories' className='categories-dropdown'>
       {categories.map((category) => (
         <NavDropdown.Item 
-          key={category} 
+          key={category._id} 
           as={Link} 
-          to={`/search?category=${category}`}
+          to={`/category/${encodeURIComponent(category.name)}`}
         >
-          {category}
+          {category.name}
         </NavDropdown.Item>
       ))}
     </NavDropdown>

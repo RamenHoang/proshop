@@ -1,5 +1,6 @@
 import asyncHandler from '../middleware/asyncHandler.js';
 import Product from '../models/productModel.js';
+import Category from '../models/categoryModel.js';
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -17,14 +18,35 @@ const getProducts = asyncHandler(async (req, res) => {
       }
     : {};
 
-  const category = req.query.category
-    ? {
-        category: req.query.category,
+  const categoryFilter = {};
+  if (req.query.category) {
+    // Try to find category by ID first
+    try {
+      const category = await Category.findById(req.query.category);
+      if (category) {
+        categoryFilter.category = category._id;
       }
-    : {};
+    } catch (err) {
+      // If not a valid ObjectId, try to find by name
+      const category = await Category.findOne({
+        name: { $regex: new RegExp(`^${req.query.category}$`, 'i') },
+      });
+      if (category) {
+        categoryFilter.categoryRef = category._id;
+      }
+    }
+  }
 
-  const count = await Product.countDocuments({ ...keyword, ...category });
-  const products = await Product.find({ ...keyword, ...category })
+  const count = await Product.countDocuments({
+    ...keyword,
+    ...categoryFilter,
+  });
+
+  const products = await Product.find({
+    ...keyword,
+    ...categoryFilter,
+  })
+    .populate('categoryRef', 'name')
     .limit(pageSize)
     .skip(pageSize * (page - 1));
 
@@ -38,7 +60,8 @@ const getProductById = asyncHandler(async (req, res) => {
   // NOTE: checking for valid ObjectId to prevent CastError moved to separate
   // middleware. See README for more info.
 
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
+    .populate('categoryRef');
   if (product) {
     return res.json(product);
   } else {
@@ -53,13 +76,22 @@ const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
+  // Get default category or create one
+  let defaultCategory = await Category.findOne({});
+  if (!defaultCategory) {
+    defaultCategory = await Category.create({
+      name: 'Sample category',
+      user: req.user._id,
+    });
+  }
+
   const product = new Product({
     name: 'Sample name',
     price: 0,
     user: req.user._id,
     image: '/images/sample.jpg',
     brand: 'Sample brand',
-    category: 'Sample category',
+    categoryRef: defaultCategory._id,
     countInStock: 0,
     numReviews: 0,
     description: 'Sample description',
@@ -73,8 +105,15 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, brand, category, countInStock } =
-    req.body;
+  const {
+    name,
+    price,
+    description,
+    image,
+    brand,
+    category,
+    countInStock,
+  } = req.body;
 
   const product = await Product.findById(req.params.id);
 
@@ -84,7 +123,17 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.description = description;
     product.image = image;
     product.brand = brand;
-    product.category = category;
+
+    // Find category document and update product
+    if (category) {
+      const categoryDoc = await Category.findById(category);
+      if (categoryDoc) {
+        product.categoryRef = categoryDoc._id;
+      } else {
+        throw new Error('Category not found');
+      }
+    }
+
     product.countInStock = countInStock;
 
     const updatedProduct = await product.save();
@@ -164,8 +213,9 @@ const getTopProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/categories
 // @access  Public
 const getProductCategories = asyncHandler(async (req, res) => {
-  const categories = await Product.distinct('category');
-  res.json(categories);
+  // Use the dedicated Category model instead of distinct
+  const categories = await Category.find({}).select('name').sort({ name: 1 });
+  res.json(categories.map((cat) => cat.name));
 });
 
 export {

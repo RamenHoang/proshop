@@ -35,9 +35,15 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    categoryRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'Category',
+    },
+    // Keep original string category for migration purposes
     category: {
       type: String,
-      required: true,
+      required: false,
     },
     description: {
       type: String,

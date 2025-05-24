@@ -201,11 +201,7 @@ const OrderListScreen = () => {
                 <td>{order.createdAt.substring(0, 10)}</td>
                 <td>{order.totalPrice}đ</td>
                 <td>
-                  {order.isPaid ? (
-                    order.paidAt.substring(0, 10)
-                  ) : (
-                    <FaTimes style={{ color: 'red' }} />
-                  )}
+                  {order.isPaid ? ( order.paidAt ? order.paidAt.substring(0, 10) : 'N/A') : (<FaTimes style={{ color: 'red' }} />)}
                 </td>
                 <td>
                   <Form.Select

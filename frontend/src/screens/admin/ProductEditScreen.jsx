@@ -10,6 +10,7 @@ import {
   useUpdateProductMutation,
   useUploadProductImageMutation,
 } from '../../slices/productsApiSlice';
+import { useGetCategoriesQuery } from '../../slices/categoriesApiSlice';
 
 const ProductEditScreen = () => {
   const { id: productId } = useParams();
@@ -28,6 +29,8 @@ const ProductEditScreen = () => {
     refetch,
     error,
   } = useGetProductDetailsQuery(productId);
+
+  const { data: categories, isLoading: loadingCategories } = useGetCategoriesQuery();
 
   const [updateProduct, { isLoading: loadingUpdate }] =
     useUpdateProductMutation();
@@ -49,7 +52,7 @@ const ProductEditScreen = () => {
         category,
         description,
         countInStock,
-      }).unwrap(); // NOTE: here we need to unwrap the Promise to catch any rejection in our catch block
+      }).unwrap();
       toast.success('Product updated');
       refetch();
       navigate('/admin/productlist');
@@ -64,7 +67,7 @@ const ProductEditScreen = () => {
       setPrice(product.price);
       setImage(product.image);
       setBrand(product.brand);
-      setCategory(product.category);
+      setCategory(product.categoryRef?._id || '');
       setCountInStock(product.countInStock);
       setDescription(product.description);
     }
@@ -154,12 +157,22 @@ const ProductEditScreen = () => {
 
             <Form.Group controlId='category'>
               <Form.Label>Category</Form.Label>
-              <Form.Control
-                type='text'
-                placeholder='Enter category'
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              ></Form.Control>
+              {loadingCategories ? (
+                <Loader />
+              ) : (
+                <Form.Control
+                  as='select'
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value=''>Select Category</option>
+                  {categories?.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Form.Control>
+              )}
             </Form.Group>
 
             <Form.Group controlId='description'>
