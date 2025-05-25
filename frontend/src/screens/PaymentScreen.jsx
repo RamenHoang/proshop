@@ -66,7 +66,7 @@ const PaymentScreen = () => {
               id='COD'
               name='paymentMethod'
               value='COD'
-              checked={paymentMethod === 'COD'}
+              checked={paymentMethod === 'COD' || paymentMethod === ''}
               onChange={(e) => setPaymentMethod(e.target.value)}
             ></Form.Check>
           </Col>
