@@ -28,7 +28,7 @@ const HomeScreen = () => {
           Go Back
         </Link>
       )}
-      {/* <h1>Latest Products</h1>
+      <h2>Products</h2>
       {isLoading ? (
         <Loader />
       ) : error ? (
@@ -50,7 +50,7 @@ const HomeScreen = () => {
             keyword={keyword ? keyword : ''}
           />
         </>
-      )} */}
+      )}
     </>
   );
 };

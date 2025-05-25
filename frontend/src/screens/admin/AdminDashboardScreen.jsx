@@ -179,6 +179,28 @@ const AdminDashboardScreen = () => {
   const isLoading = loadingProducts || loadingUsers || loadingOrders;
   const isError = errorProducts || errorUsers || errorOrders;
 
+  // Helper function to get the correct users count
+  const getUsersCount = () => {
+    if (!users) return 0;
+    
+    // If users is an array, return its length
+    if (Array.isArray(users)) {
+      return users.length;
+    }
+    
+    // If users is an object with a 'users' property that is an array
+    if (users.users && Array.isArray(users.users)) {
+      return users.users.length;
+    }
+    
+    // If there's a count property directly on the response
+    if (typeof users.count === 'number') {
+      return users.count;
+    }
+    
+    return 0;
+  };
+
   let a = [];
   if (products) {
     a = Object.entries(
@@ -241,7 +263,7 @@ const AdminDashboardScreen = () => {
               <Card className="mb-3">
                 <Card.Body>
                   <Card.Title>Total Users</Card.Title>
-                  <h3>{users?.length || 0}</h3>
+                  <h3>{getUsersCount()}</h3>
                 </Card.Body>
               </Card>
             </Col>

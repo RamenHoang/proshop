@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navbar, Nav, Container, NavDropdown, Badge } from 'react-bootstrap';
 import { FaShoppingCart, FaUser, FaThList, FaAngleDown } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLogoutMutation } from '../slices/usersApiSlice';
 import { useGetCategoriesQuery } from '../slices/categoriesApiSlice';
 import { logout } from '../slices/authSlice';
@@ -123,6 +123,8 @@ const Header = () => {
                   </ul>
                 )}
               </div>
+              <Nav.Link onClick={() => navigate('/about')}>About Us</Nav.Link>
+              <Nav.Link onClick={() => navigate('/contact')}>Contact</Nav.Link>
             </Nav>
             <Nav className='ms-auto'>
               <SearchBox />
@@ -156,6 +158,9 @@ const Header = () => {
               {/* Admin Links */}
               {userInfo && userInfo.isAdmin && (
                 <NavDropdown title='Admin' id='adminmenu'>
+                  <NavDropdown.Item onClick={() => navigate('/admin/dashboard')}>
+                    Dashboard
+                  </NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/productlist')}>
                     Products
                   </NavDropdown.Item>
@@ -167,6 +172,9 @@ const Header = () => {
                   </NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/categorylist')}>
                     Categories
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/contactlist')}>
+                    Contacts
                   </NavDropdown.Item>
                 </NavDropdown>
               )}
