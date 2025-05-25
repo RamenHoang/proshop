@@ -7,8 +7,6 @@ import { useLogoutMutation } from '../slices/usersApiSlice';
 import { useGetCategoriesQuery } from '../slices/categoriesApiSlice';
 import { logout } from '../slices/authSlice';
 import SearchBox from './SearchBox';
-import Loader from './Loader';
-import Message from './Message';
 import logo from '../assets/logo.png';
 import { resetCart } from '../slices/cartSlice';
 
@@ -49,7 +47,10 @@ const Header = () => {
     <header>
       <Navbar bg='primary' variant='dark' expand='lg' collapseOnSelect>
         <Container>
-          <Navbar.Brand as={Link} to='/'>
+          <Navbar.Brand 
+            onClick={() => navigate('/')}
+            style={{ cursor: 'pointer' }}
+          >
             <img src={logo} alt='ProShop' />
             ProShop
           </Navbar.Brand>
@@ -125,7 +126,7 @@ const Header = () => {
             </Nav>
             <Nav className='ms-auto'>
               <SearchBox />
-              <Nav.Link as={Link} to='/cart'>
+              <Nav.Link onClick={() => navigate('/cart')}>
                 <FaShoppingCart /> Cart
                 {cartItems.length > 0 && (
                   <Badge pill bg='success' style={{ marginLeft: '5px' }}>
@@ -136,7 +137,9 @@ const Header = () => {
               {userInfo ? (
                 <>
                   <NavDropdown title={userInfo.name} id='username'>
-                    <NavDropdown.Item as={Link} to='/profile'>
+                    <NavDropdown.Item 
+                      onClick={() => navigate('/profile')}
+                    >
                       Profile
                     </NavDropdown.Item>
                     <NavDropdown.Item onClick={logoutHandler}>
@@ -145,7 +148,7 @@ const Header = () => {
                   </NavDropdown>
                 </>
               ) : (
-                <Nav.Link as={Link} to='/login'>
+                <Nav.Link onClick={() => navigate('/login')}>
                   <FaUser /> Sign In
                 </Nav.Link>
               )}
@@ -153,19 +156,16 @@ const Header = () => {
               {/* Admin Links */}
               {userInfo && userInfo.isAdmin && (
                 <NavDropdown title='Admin' id='adminmenu'>
-                  <NavDropdown.Item as={Link} to='/admin/dashboard'>
-                    Dashboard
-                  </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to='/admin/productlist'>
+                  <NavDropdown.Item onClick={() => navigate('/admin/productlist')}>
                     Products
                   </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to='/admin/orderlist'>
+                  <NavDropdown.Item onClick={() => navigate('/admin/orderlist')}>
                     Orders
                   </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to='/admin/userlist'>
+                  <NavDropdown.Item onClick={() => navigate('/admin/userlist')}>
                     Users
                   </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to='/admin/categorylist'>
+                  <NavDropdown.Item onClick={() => navigate('/admin/categorylist')}>
                     Categories
                   </NavDropdown.Item>
                 </NavDropdown>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Button, Row, Col, ListGroup, Image, Card } from 'react-bootstrap';
@@ -15,6 +15,7 @@ const PlaceOrderScreen = () => {
   const cart = useSelector((state) => state.cart);
 
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
+  const [isLoadingState, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!cart.shippingAddress.address) {
@@ -25,8 +26,25 @@ const PlaceOrderScreen = () => {
   }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
 
   const dispatch = useDispatch();
+
+  // Check for out of stock items before placing order
+  const checkInventory = () => {
+    for (const item of cart.cartItems) {
+      if (item.countInStock < item.qty) {
+        toast.error(`${item.name} is out of stock. Please adjust your quantity.`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const placeOrderHandler = async () => {
     try {
+      if (!checkInventory()) {
+        return;
+      }
+      
+      setIsLoading(true);
       const res = await createOrder({
         orderItems: cart.cartItems,
         shippingAddress: cart.shippingAddress,
@@ -40,6 +58,8 @@ const PlaceOrderScreen = () => {
       navigate(`/order/${res._id}`);
     } catch (err) {
       toast.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,7 +163,7 @@ const PlaceOrderScreen = () => {
                 >
                   Place Order
                 </Button>
-                {isLoading && <Loader />}
+                {isLoading || isLoadingState ? <Loader /> : null}
               </ListGroup.Item>
             </ListGroup>
           </Card>

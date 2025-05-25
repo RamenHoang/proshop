@@ -118,8 +118,58 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @route   GET /api/users
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({});
-  res.json(users);
+  const pageSize = process.env.PAGINATION_LIMIT || 10;
+  const page = Number(req.query.pageNumber) || 1;
+
+  // Log incoming request parameters to debug
+  console.log('User filter params:', req.query);
+
+  // Create filter object based on query parameters
+  const filters = {};
+
+  // Filter by name
+  if (req.query.name) {
+    filters.name = { $regex: req.query.name, $options: 'i' };
+  }
+
+  // Filter by email
+  if (req.query.email) {
+    filters.email = { $regex: req.query.email, $options: 'i' };
+  }
+
+  // Filter by admin status
+  if (req.query.isAdmin === 'true') {
+    filters.isAdmin = true;
+  } else if (req.query.isAdmin === 'false') {
+    filters.isAdmin = false;
+  }
+
+  // Filter by registration date range
+  if (req.query.startDate) {
+    filters.createdAt = { ...filters.createdAt, $gte: new Date(req.query.startDate) };
+  }
+  if (req.query.endDate) {
+    const endDate = new Date(req.query.endDate);
+    endDate.setDate(endDate.getDate() + 1); // Include the end date
+    filters.createdAt = { ...filters.createdAt, $lt: endDate };
+  }
+
+  // Log constructed filters
+  console.log('MongoDB filters:', filters);
+
+  const count = await User.countDocuments(filters);
+
+  const users = await User.find(filters)
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .sort({ createdAt: -1 });
+
+  res.json({
+    users,
+    page,
+    pages: Math.ceil(count / pageSize),
+    count,
+  });
 });
 
 // @desc    Delete user

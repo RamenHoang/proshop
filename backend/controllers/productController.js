@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../middleware/asyncHandler.js';
 import Product from '../models/productModel.js';
 import Category from '../models/categoryModel.js';
@@ -205,7 +206,14 @@ const createProductReview = asyncHandler(async (req, res) => {
 // @access  Public
 const getTopProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({}).sort({ rating: -1 }).limit(3);
+  res.json(products);
+});
 
+// @desc    Get newest products
+// @route   GET /api/products/newest
+// @access  Public
+const getNewestProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({}).sort({ createdAt: -1 }).limit(3);
   res.json(products);
 });
 
@@ -218,6 +226,105 @@ const getProductCategories = asyncHandler(async (req, res) => {
   res.json(categories.map((cat) => cat.name));
 });
 
+// @desc    Get best selling products
+// @route   GET /api/products/bestsellers
+// @access  Public
+const getBestSellerProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({ numSales: { $gt: 0 } })
+    .sort({ numSales: -1 })
+    .limit(3);
+  
+  // // If there are not enough products with sales, fill with top rated products
+  // if (products.length < 3) {
+  //   const additionalProducts = await Product.find({
+  //     _id: { $nin: products.map(p => p._id) }
+  //   })
+  //   .sort({ rating: -1 })
+  //   .limit(3 - products.length);
+    
+  //   products.push(...additionalProducts);
+  // }
+  
+  res.json(products);
+});
+
+// @desc    Get all products (admin)
+// @route   GET /api/products/admin
+// @access  Private/Admin
+const getAdminProducts = asyncHandler(async (req, res) => {
+  const pageSize = process.env.PAGINATION_LIMIT;
+  const page = Number(req.query.pageNumber) || 1;
+  
+  // Create filter object based on query parameters
+  const filters = {};
+  
+  // Filter by name
+  if (req.query.name) {
+    filters.name = { $regex: req.query.name, $options: 'i' };
+  }
+  
+  // Filter by brand
+  if (req.query.brand) {
+    filters.brand = { $regex: req.query.brand, $options: 'i' };
+  }
+  
+  // Filter by price range
+  if (req.query.minPrice) {
+    filters.price = { ...filters.price, $gte: Number(req.query.minPrice) };
+  }
+  if (req.query.maxPrice) {
+    filters.price = { ...filters.price, $lte: Number(req.query.maxPrice) };
+  }
+  
+  // Filter by category
+  if (req.query.category) {
+    // Import mongoose for ObjectId validation
+    const mongoose = require('mongoose');
+    
+    // Check if the category is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(req.query.category)) {
+      try {
+        const category = await Category.findById(req.query.category);
+        if (category) {
+          filters.categoryRef = category._id;
+        }
+      } catch (err) {
+        // Just log the error but don't break the request
+        console.error('Error finding category by ID:', err);
+      }
+    } else {
+      // If not a valid ObjectId, try to find by name
+      try {
+        const category = await Category.findOne({
+          name: { $regex: new RegExp(`^${req.query.category}$`, 'i') }
+        });
+        if (category) {
+          filters.categoryRef = category._id;
+        }
+      } catch (err) {
+        console.error('Error finding category by name:', err);
+      }
+    }
+  }
+  
+  // Filter by stock status
+  if (req.query.inStock === 'true') {
+    filters.countInStock = { $gt: 0 };
+  } else if (req.query.inStock === 'false') {
+    filters.countInStock = { $lte: 0 };
+  }
+
+  const count = await Product.countDocuments(filters);
+  
+  const products = await Product.find(filters)
+    .populate('categoryRef', 'name')
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .sort({ createdAt: -1 });
+  
+  res.json({ products, page, pages: Math.ceil(count / pageSize) });
+});
+
 export {
   getProducts,
   getProductById,
@@ -226,5 +333,8 @@ export {
   deleteProduct,
   createProductReview,
   getTopProducts,
+  getNewestProducts,
   getProductCategories,
+  getBestSellerProducts,
+  getAdminProducts,
 };

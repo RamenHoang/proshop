@@ -1,5 +1,5 @@
 // @ts-check
-import { isValidObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 /**
  * Checks if the req.params.id is a valid Mongoose ObjectId.
@@ -10,12 +10,20 @@ import { isValidObjectId } from 'mongoose';
  * @throws {Error} Throws an error if the ObjectId is invalid.
  */
 
-function checkObjectId(req, res, next) {
-  if (!isValidObjectId(req.params.id)) {
-    res.status(404);
-    throw new Error(`Invalid ObjectId of:  ${req.params.id}`);
+const checkObjectId = (req, res, next) => {
+  const id = req.params.id;
+  
+  if (!id) {
+    return res.status(400).json({ message: 'ID parameter is missing' });
   }
+  
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ 
+      message: `Invalid ObjectId: ${id}` 
+    });
+  }
+  
   next();
-}
+};
 
 export default checkObjectId;

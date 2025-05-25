@@ -99,10 +99,46 @@ const deleteCategory = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get all categories (admin)
+// @route   GET /api/categories/admin
+// @access  Private/Admin
+const getAdminCategories = asyncHandler(async (req, res) => {
+  const pageSize = process.env.PAGINATION_LIMIT || 10;
+  const page = Number(req.query.pageNumber) || 1;
+  
+  // Create filter object based on query parameters
+  const filters = {};
+  
+  // Filter by name
+  if (req.query.name) {
+    filters.name = { $regex: req.query.name, $options: 'i' };
+  }
+  
+  // Filter by creation date range
+  if (req.query.startDate) {
+    filters.createdAt = { ...filters.createdAt, $gte: new Date(req.query.startDate) };
+  }
+  if (req.query.endDate) {
+    const endDate = new Date(req.query.endDate);
+    endDate.setDate(endDate.getDate() + 1); // Include the end date
+    filters.createdAt = { ...filters.createdAt, $lt: endDate };
+  }
+
+  const count = await Category.countDocuments(filters);
+  
+  const categories = await Category.find(filters)
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .sort({ name: 1 });
+  
+  res.json({ categories, page, pages: Math.ceil(count / pageSize) });
+});
+
 export {
   getCategories,
   getCategoryById,
   createCategory,
   updateCategory,
   deleteCategory,
+  getAdminCategories,
 };

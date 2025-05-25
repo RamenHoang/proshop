@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, Button, Row, Col, Form, Modal } from 'react-bootstrap';
 import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
+import FilterBox from '../../components/FilterBox';
 import {
   useGetCategoriesQuery,
   useDeleteCategoryMutation,
@@ -12,6 +14,7 @@ import {
 import { toast } from 'react-toastify';
 
 const CategoryListScreen = () => {
+  const navigate = useNavigate();
   const { data: categories, isLoading, error, refetch } = useGetCategoriesQuery();
 
   const [deleteCategory, { isLoading: loadingDelete }] =
@@ -28,6 +31,14 @@ const CategoryListScreen = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [filterParams, setFilterParams] = useState({});
+
+  // Define the filters
+  const categoryFilters = [
+    { label: 'Name', name: 'name', type: 'text' },
+    { label: 'Start Date', name: 'startDate', type: 'date' },
+    { label: 'End Date', name: 'endDate', type: 'date' },
+  ];
 
   const deleteHandler = async (id) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
@@ -79,6 +90,18 @@ const CategoryListScreen = () => {
     }
   };
 
+  // Apply filters
+  const handleApplyFilter = (values) => {
+    setFilterParams(values);
+    // You would need to update your API call to include these filters
+  };
+
+  // Reset filters
+  const handleResetFilter = () => {
+    setFilterParams({});
+    // Reset to default data fetch
+  };
+
   return (
     <>
       <Row className='align-items-center'>
@@ -92,31 +115,37 @@ const CategoryListScreen = () => {
         </Col>
       </Row>
 
+      <FilterBox
+        filters={categoryFilters}
+        onApplyFilter={handleApplyFilter}
+        onResetFilter={handleResetFilter}
+      />
+
       {loadingCreate || loadingDelete || loadingUpdate ? (
         <Loader />
       ) : error ? (
-        <Message variant='danger'>{error}</Message>
+        <Message variant='danger'>{error.data.message}</Message>
       ) : (
         <Table striped bordered hover responsive className='table-sm'>
           <thead>
             <tr>
               <th>ID</th>
               <th>NAME</th>
-              <th>DESCRIPTION</th>
-              <th>ACTIONS</th>
+              <th>CREATED AT</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            {categories?.map((category) => (
+            {categories.map((category) => (
               <tr key={category._id}>
                 <td>{category._id}</td>
                 <td>{category.name}</td>
-                <td>{category.description}</td>
+                <td>{category.createdAt.substring(0, 10)}</td>
                 <td>
                   <Button
                     variant='light'
                     className='btn-sm mx-2'
-                    onClick={() => editHandler(category)}
+                    onClick={() => navigate(`/admin/category/${category._id}/edit`)}
                   >
                     <FaEdit />
                   </Button>
@@ -125,7 +154,7 @@ const CategoryListScreen = () => {
                     className='btn-sm'
                     onClick={() => deleteHandler(category._id)}
                   >
-                    <FaTrash style={{ color: 'white' }} />
+                    <FaTrash />
                   </Button>
                 </td>
               </tr>

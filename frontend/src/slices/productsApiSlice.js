@@ -11,6 +11,14 @@ export const productsApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
       providesTags: ['Products'],
     }),
+    getAdminProducts: builder.query({
+      query: ({ pageNumber, ...filters }) => ({
+        url: `${PRODUCTS_URL}/admin`,
+        params: { pageNumber, ...filters },
+      }),
+      keepUnusedDataFor: 5,
+      providesTags: ['Products'],
+    }),
     getProductDetails: builder.query({
       query: (productId) => ({
         url: `${PRODUCTS_URL}/${productId}`,
@@ -55,7 +63,15 @@ export const productsApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ['Product'],
     }),
     getTopProducts: builder.query({
-      query: () => `${PRODUCTS_URL}/top`,
+      query: () => ({
+        url: `${PRODUCTS_URL}/top`,
+      }),
+      keepUnusedDataFor: 5,
+    }),
+    getNewestProducts: builder.query({
+      query: () => ({
+        url: `${PRODUCTS_URL}/newest`,
+      }),
       keepUnusedDataFor: 5,
     }),
     getCategories: builder.query({
@@ -64,11 +80,18 @@ export const productsApiSlice = apiSlice.injectEndpoints({
       }),
       keepUnusedDataFor: 5,
     }),
+    getBestSellerProducts: builder.query({
+      query: () => ({
+        url: `${PRODUCTS_URL}/bestsellers`,
+      }),
+      keepUnusedDataFor: 5,
+    }),
   }),
 });
 
 export const {
   useGetProductsQuery,
+  useGetAdminProductsQuery,
   useGetProductDetailsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
@@ -76,5 +99,7 @@ export const {
   useDeleteProductMutation,
   useCreateReviewMutation,
   useGetTopProductsQuery,
+  useGetNewestProductsQuery,
   useGetCategoriesQuery,
+  useGetBestSellerProductsQuery,
 } = productsApiSlice;
