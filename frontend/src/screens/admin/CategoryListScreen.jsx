@@ -121,7 +121,7 @@ const CategoryListScreen = () => {
         onResetFilter={handleResetFilter}
       />
 
-      {loadingCreate || loadingDelete || loadingUpdate ? (
+      {loadingCreate || loadingDelete || loadingUpdate || isLoading ? (
         <Loader />
       ) : error ? (
         <Message variant='danger'>{error.data.message}</Message>
@@ -136,29 +136,37 @@ const CategoryListScreen = () => {
             </tr>
           </thead>
           <tbody>
-            {categories.map((category) => (
-              <tr key={category._id}>
-                <td>{category._id}</td>
-                <td>{category.name}</td>
-                <td>{category.createdAt.substring(0, 10)}</td>
-                <td>
-                  <Button
-                    variant='light'
-                    className='btn-sm mx-2'
-                    onClick={() => navigate(`/admin/category/${category._id}/edit`)}
-                  >
-                    <FaEdit />
-                  </Button>
-                  <Button
-                    variant='danger'
-                    className='btn-sm'
-                    onClick={() => deleteHandler(category._id)}
-                  >
-                    <FaTrash />
-                  </Button>
+            {categories && categories.length > 0 ? (
+              categories.map((category) => (
+                <tr key={category._id}>
+                  <td>{category._id}</td>
+                  <td>{category.name}</td>
+                  <td>{category.createdAt.substring(0, 10)}</td>
+                  <td>
+                    <Button
+                      variant='light'
+                      className='btn-sm mx-2'
+                      onClick={() => editHandler(category)}
+                    >
+                      <FaEdit />
+                    </Button>
+                    <Button
+                      variant='danger'
+                      className='btn-sm'
+                      onClick={() => deleteHandler(category._id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan='4' className='text-center'>
+                  No categories found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </Table>
       )}
